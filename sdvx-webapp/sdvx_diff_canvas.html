@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>SDVX Web App - SDVX Score Diff Tracker v1.0</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="../css/sdvx_theme.css">
+
+<style>
+/* 自動管理システム用スタイル */
+.auto-system {
+  background: linear-gradient(135deg, rgba(0,229,255,0.1), rgba(0,255,136,0.05));
+  border: 2px solid rgba(0,229,255,0.3); border-radius: 16px;
+  padding: 30px; margin: 25px 0; backdrop-filter: blur(10px);
+}
+
+.system-header {
+  display: flex; align-items: center; gap: 15px; margin-bottom: 20px;
+}
+
+.system-icon {
+  width: 48px; height: 48px; background: linear-gradient(45deg, #00e5ff, #00ff88);
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 24px; color: #000; font-weight: 900;
+}
+
+.system-title {
+  color: #00e5ff; font-size: 28px; font-weight: 700; margin: 0;
+}
+
+.system-desc {
+  color: #aab2bd; font-size: 16px; line-height: 1.6; margin: 15px 0;
+}
+
+.import-zone {
+  border: 3px dashed rgba(0,229,255,0.4); border-radius: 12px;
+  padding: 40px; text-align: center; margin: 20px 0;
+  transition: all 0.3s ease; cursor: pointer;
+}
+
+.import-zone:hover { border-color: #00e5ff; background: rgba(0,229,255,0.05); }
+.import-zone.dragover { border-color: #00ff88; background: rgba(0,255,136,0.1); }
+
+.file-status {
+  display: flex; gap: 20px; margin: 20px 0; flex-wrap: wrap;
+}
+
+.status-item {
+  flex: 1; min-width: 200px; padding: 15px; border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2);
+}
+
+.status-label { color: #aab2bd; font-size: 14px; margin-bottom: 5px; }
+.status-value { color: #fff; font-weight: 700; font-size: 18px; }
+.status-ready { border-color: #00ff88; background: rgba(0,255,136,0.1); }
+
+.timeline-container {
+  max-height: 300px; overflow-y: auto; margin: 20px 0;
+  border: 1px solid rgba(0,229,255,0.2); border-radius: 8px;
+}
+
+.timeline-item {
+  display: flex; align-items: center; padding: 15px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  cursor: pointer; transition: all 0.3s;
+}
+
+.timeline-item:hover {
+  background: rgba(0,229,255,0.1); transform: translateX(5px);
+}
+
+.timeline-date {
+  color: #00e5ff; font-weight: 700; min-width: 180px; font-size: 16px;
+}
+
+.timeline-stats {
+  color: #aab2bd; font-size: 14px; margin-left: 20px; flex: 1;
+}
+
+.timeline-vf {
+  color: #00ff88; font-weight: 700; font-size: 20px;
+  font-family: 'Orbitron', monospace;
+}
+
+.progress-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.95); display: flex; align-items: center; justify-content: center;
+  z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.4s;
+}
+
+.progress-overlay.active { opacity: 1; pointer-events: all; }
+
+.progress-content {
+  text-align: center; color: #00e5ff; max-width: 500px;
+  background: rgba(20,25,40,0.95); padding: 50px; border-radius: 20px;
+  border: 2px solid #00e5ff; backdrop-filter: blur(20px);
+}
+
+.progress-title {
+  font-size: 32px; font-weight: 900; margin-bottom: 20px;
+  background: linear-gradient(45deg, #00e5ff, #00ff88);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+
+.progress-bar {
+  width: 400px; height: 8px; background: rgba(0,229,255,0.2);
+  border-radius: 4px; margin: 25px auto; overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%; background: linear-gradient(90deg, #00e5ff, #00ff88);
+  width: 0%; transition: width 0.3s ease; border-radius: 4px;
+}
+
+.stats-dashboard {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px; margin: 30px 0;
+}
+
+.stat-card {
+  background: rgba(20,25,40,0.9); border: 2px solid transparent;
+  border-radius: 12px; padding: 25px; text-align: center; position: relative;
+  transition: all 0.3s; overflow: hidden;
+}
+
+.stat-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(45deg, #00e5ff, #00ff88); opacity: 0;
+  transition: opacity 0.3s; z-index: -1;
+}
+
+.stat-card:hover::before { opacity: 0.1; }
+
+.stat-icon {
+  font-size: 48px; margin-bottom: 15px; display: block;
+}
+
+.stat-value {
+  font-size: 36px; font-weight: 900; color: #00e5ff;
+  margin: 10px 0; font-family: 'Orbitron', monospace;
+}
+
+.stat-label {
+  color: #aab2bd; font-size: 14px; text-transform: uppercase;
+  letter-spacing: 2px; margin-bottom: 10px;
+}
+
+.stat-change {
+  font-size: 18px; font-weight: 700; display: flex;
+  align-items: center; justify-content: center; gap: 8px;
+}
+
+.stat-change.up { color: #00ff88; }
+.stat-change.down { color: #ff4466; }
+.stat-change.neutral { color: #aab2bd; }
+</style>
+</head>
+
+<body>
+  <div class="bgfx" aria-hidden="true">
+    <div class="blob cyan"></div>
+    <div class="blob violet"></div>
+    <div class="blob pink"></div>
+  </div>
+
+  <div class="progress-overlay" id="progressOverlay">
+    <div class="progress-content">
+      <div class="progress-title" id="progressTitle">Processing...</div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <p id="progressText" style="color: #aab2bd; margin: 20px 0;">Initializing...</p>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <h1 class="title">Score Diff Tracker v2.0</h1>
+        <p class="subtitle">Automatic Version Management & Analysis</p>
+      </div>
+      <div class="topActions">
+        <a class="btn" href="sdvx_menu.html">メニューへ戻る</a>
+        <button class="btn" id="clearAll" style="background: linear-gradient(45deg, #ff0055, #ff5599);">
+          履歴クリア
+        </button>
+      </div>
+    </header>
+
+    <section class="panel">
+      <div class="card">
+        <!-- 自動管理システム -->
+        <div class="auto-system">
+          <div class="system-header">
+            <div class="system-icon">🚀</div>
+            <div>
+              <h3 class="system-title">自動差分管理システム</h3>
+              <p class="system-desc">
+                新しいスコアデータを投入するだけで、自動的に前回データと比較し差分を抽出します。
+                ファイル管理は完全に自動化されます。
+              </p>
+            </div>
+          </div>
+
+          <!-- ドラッグ&ドロップエリア -->
+          <div class="import-zone" id="importZone">
+            <div style="font-size: 64px; margin-bottom: 20px;">📁</div>
+            <h4 style="color: #00e5ff; margin-bottom: 15px;">
+              JSONファイルをドラッグ＆ドロップ
+            </h4>
+            <p style="color: #aab2bd; margin-bottom: 20px;">
+              または <button class="btn" id="selectFiles">ファイルを選択</button>
+            </p>
+            <small style="color: #666;">
+              対応形式: sdvx_music_data.json, sdvx_score_data.json
+            </small>
+          </div>
+
+          <input type="file" id="fileInput" multiple accept=".json" style="display: none;">
+
+          <!-- ファイル状態 -->
+          <div class="file-status" id="fileStatus" style="display: none;">
+            <div class="status-item" id="musicStatus">
+              <div class="status-label">Music Data</div>
+              <div class="status-value">未選択</div>
+            </div>
+            <div class="status-item" id="scoreStatus">
+              <div class="status-label">Score Data</div>
+              <div class="status-value">未選択</div>
+            </div>
+            <div class="status-item">
+              <button class="btn" id="processBtn" disabled>
+                🔄 差分処理開始
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 統計ダッシュボード -->
+        <div id="statsSection" style="display: none;">
+          <h3 style="color: #00e5ff; margin: 30px 0 20px; font-size: 28px;">
+            📊 最新の更新統計
+          </h3>
+          <div class="stats-dashboard" id="statsGrid"></div>
+        </div>
+
+        <!-- 履歴タイムライン -->
+        <div id="timelineSection" style="display: none;">
+          <div class="auto-system">
+            <div class="system-header">
+              <div class="system-icon">📅</div>
+              <h3 class="system-title">更新履歴タイムライン</h3>
+            </div>
+            <div class="timeline-container" id="timelineContainer"></div>
+          </div>
+        </div>
+
+        <!-- Canvas表示エリア -->
+        <div class="stage" id="canvasStage" style="display: none;">
+          <div class="toolbar">
+            <div class="left">
+              <button id="download" class="btn">📥 Download PNG</button>
+              <button id="toggleFit" class="btn" aria-pressed="false">表示：フィット</button>
+              <button id="regenerate" class="btn">🔄 再生成</button>
+            </div>
+            <div class="right">
+              <div class="hint">
+              </div>
+            </div>
+          </div>
+
+          <div id="canvasWrap" class="canvasWrap fit">
+            <canvas id="cv"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- モジュール読み込み -->
+  <script type="module" src="../js/sdvx_diff_system.js"></script>
+</body>
+</html>
