@@ -83,7 +83,7 @@ export function renderSongTable(container, entries) {
         ].map((s) => `
           <button class="sort-btn${s.key === "musicNum" ? " active desc" : ""}"
             data-sort="${s.key}" type="button" title="${s.label}でソート">
-            ${s.label} <span class="sort-arrow">${s.key === "musicNum" ? "↓" : "↕"}</span>
+            ${s.label} <span class="sort-arrow">${s.key === "musicNum" ? "↓" : ""}</span>
           </button>
         `).join("")}
       </div>
@@ -185,7 +185,7 @@ function bindSortButtons(container) {
       sortBtns.forEach((b) => {
         b.classList.remove("active", "asc", "desc");
         const arrow = b.querySelector(".sort-arrow");
-        if (arrow) arrow.textContent = "↕";
+        if (arrow) arrow.textContent = "";
       });
 
       btn.classList.add("active", currentSort.dir);
@@ -393,7 +393,7 @@ function createRow(entry, rank) {
     </td>
     <td class="col-lv">${entry.level.toFixed(1)}</td>
     <td class="col-score ${entry.score >= 9900000 ? "score-high" : ""}">
-      ${entry.score > 0 ? entry.score.toLocaleString("ja-JP") : "—"}
+      ${entry.score > 0 ? entry.score.toLocaleString("ja-JP") : "-"}
     </td>
     <td class="col-clear">
       <span class="clear-badge ${CLEAR_CLASS[entry.clear] ?? "clear-no"}">
@@ -401,13 +401,13 @@ function createRow(entry, rank) {
       </span>
     </td>
     <td class="col-exscore">
-      ${entry.exscore > 0 ? entry.exscore.toLocaleString("ja-JP") : "—"}
+      ${entry.exscore > 0 ? entry.exscore.toLocaleString("ja-JP") : "-"}
     </td>
     <td class="col-exdiff ${exDiffClass}">
       ${exDiffDisplay}
     </td>
     <td class="col-vf ${entry.vf > 0 ? "vf-value" : ""}">
-      ${entry.vf > 0 ? entry.vf : "—"}
+      ${entry.vf > 0 ? entry.vf : "-"}
     </td>
   `;
 
