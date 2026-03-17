@@ -549,6 +549,11 @@ class DiffTrackerApp {
       this.downloadCanvas();
     });
 
+    document.getElementById('downloadForiOS')?.addEventListener('click', () => {
+      this.downloadForiOS();
+    });
+
+
     document.getElementById('toggleFit')?.addEventListener('click', () => {
       this.toggleCanvasFit();
     });
@@ -816,6 +821,18 @@ class DiffTrackerApp {
     link.href = canvas.toDataURL('image/png');
     link.download = `sdvx_diff_${dateStr}.png`;
     link.click();
+  }
+
+  downloadForiOS() {
+    if (!this.canvas) return;
+      
+    const link = document.createElement('a');
+    link.href = this.canvas.toDataURL("image/png");
+    link.download = `${this.pageDefinition.downloadFilePrefix}_${formatDateStamp()}.png`;
+    link.target = '_blank'; // iOSではこちらが有効な場合が多い
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 
   toggleCanvasFit() {

@@ -157,15 +157,12 @@ export class BaseCanvasPage {
   downloadForiOS() {
     if (!this.canvas) return;
     
-    const image = this.canvas.toDataURL("image/png");
-
     const link = document.createElement('a');
-    link.href = image;
-    link.download = filename;
+    link.href = this.canvas.toDataURL("image/png");
+    link.download = `${this.pageDefinition.downloadFilePrefix}_${formatDateStamp()}.png`;
     link.target = '_blank'; // iOSではこちらが有効な場合が多い
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-}
-
+  }
 }
