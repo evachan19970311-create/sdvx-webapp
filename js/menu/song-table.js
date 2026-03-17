@@ -368,7 +368,7 @@ function createRow(entry, rank) {
   tr.className = entry.score > 0 ? "row-played" : "row-unplayed";
 
   const jacketSrc = entry.jacketId
-    ? `${JACKET_BASE_PATH}/${entry.jacketId}.webp`
+    ? `${JACKET_BASE_PATH}/${entry.jacketId}.jpg`
     : null;
 
   const exDiffDisplay = formatExDiff(entry.exDiff, entry.exscore);
