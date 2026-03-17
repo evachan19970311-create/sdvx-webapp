@@ -38,6 +38,7 @@ export class BaseCanvasPage {
     this.titleElement = document.querySelector(".title");
     this.subtitleElement = document.querySelector(".subtitle");
     this.downloadButton = document.getElementById("download");
+    this.downloadForiOSButton = document.getElementById("downloadForiOS");
     this.regenerateButton = document.getElementById("regenerate");
     this.toggleFitButton = document.getElementById("toggleFit");
     this.openLastButton = document.getElementById("openLast");
@@ -57,6 +58,7 @@ export class BaseCanvasPage {
 
   bindCommonEvents() {
     this.downloadButton?.addEventListener("click", () => this.downloadPng());
+    this.downloadForiOSButton?.addEventListener("click", () => this.downloadForiOS());
     this.regenerateButton?.addEventListener("click", () => this.generate());
 
     this.openLastButton?.addEventListener("click", (event) => {
@@ -151,4 +153,19 @@ export class BaseCanvasPage {
     link.download = `${this.pageDefinition.downloadFilePrefix}_${formatDateStamp()}.png`;
     link.click();
   }
+
+  downloadForiOS() {
+    if (!this.canvas) return;
+    
+    const image = this.canvas.toDataURL("image/png");
+
+    const link = document.createElement('a');
+    link.href = image;
+    link.download = filename;
+    link.target = '_blank'; // iOSではこちらが有効な場合が多い
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
 }
