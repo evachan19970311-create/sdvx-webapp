@@ -48,6 +48,6 @@ export class ImageRepository {
 
 export class JacketRepository extends ImageRepository {
   constructor(basePath) {
-    super((jacketId) => `${basePath}/${jacketId}.jpg`);
+    super((jacketId) => `${basePath}/${jacketId}.webp`);
   }
 }

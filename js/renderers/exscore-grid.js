@@ -76,10 +76,13 @@ function calculateScoreGridLayout(songs, canvasWidth, uiConfig) {
   const groups = new Map();
 
   songs.forEach((song) => {
-    if (!groups.has(song.level)) {
-      groups.set(song.level, []);
+    // ★ レベル20以上を20にまとめる（表示用）
+    const displayLevel = song.level >= 20 ? 20 : song.level;
+
+    if (!groups.has(displayLevel)) {
+      groups.set(displayLevel, []);
     }
-    groups.get(song.level).push(song);
+    groups.get(displayLevel).push(song);
   });
 
   const levels = [...groups.keys()].sort((a, b) => b - a);
@@ -94,6 +97,16 @@ function calculateScoreGridLayout(songs, canvasWidth, uiConfig) {
 
   for (const level of levels) {
     const levelSongs = groups.get(level);
+    
+    // ★ レベル20グループ内では元レベル→マイナス値でソート
+    if (level === 20) {
+      levelSongs.sort((a, b) => {
+        if (b.level !== a.level) return b.level - a.level;     // 元レベル降順
+        if (b.minus !== a.minus) return b.minus - a.minus;     // マイナス値昇順
+        return b.musicNum - a.musicNum;                        // 楽曲番号降順
+      });
+    }
+    
     const rows = Math.ceil(levelSongs.length / uiConfig.maxCols);
 
     layout.sections.push({
@@ -146,11 +159,14 @@ function drawSections(ctx, sections, uiConfig) {
     ctx.fillStyle = uiConfig.colors.accent;
     ctx.fillRect(section.x, section.y, 6, section.height);
 
+    // ★ レベル表示の改善
+    const levelText = section.level === 20 ? "LEVEL 20+" : `LEVEL ${section.level.toFixed(1)}`;
+
     ctx.fillStyle = uiConfig.colors.textMain;
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
     ctx.fillText(
-      `LEVEL ${section.level}`,
+      levelText,
       section.x + 25,
       section.y + section.height / 2
     );

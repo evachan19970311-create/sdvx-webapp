@@ -142,7 +142,7 @@ export function createSummaryItemsForScoreGrid(songs, clearColors) {
     { label: "AVG(PLAYED)", value: formatInteger(avgPlayed) },
     { label: "PUC", value: `${puc}/${total}`, color: clearColors.per },
     { label: "UC", value: `${uc}/${total}`, color: clearColors.uc },
-    { label: "MAX", value: `${max}/${total}`, color: clearColors.comp_max }
+    { label: "MXV", value: `${max}/${total}`, color: clearColors.comp_max }
   ];
 }
 
