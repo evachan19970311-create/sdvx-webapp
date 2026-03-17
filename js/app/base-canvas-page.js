@@ -58,7 +58,6 @@ export class BaseCanvasPage {
 
   bindCommonEvents() {
     this.downloadButton?.addEventListener("click", () => this.downloadPng());
-    this.downloadForiOSButton?.addEventListener("click", () => this.downloadForiOS());
     this.regenerateButton?.addEventListener("click", () => this.generate());
 
     this.openLastButton?.addEventListener("click", (event) => {
@@ -148,21 +147,29 @@ export class BaseCanvasPage {
   downloadPng() {
     if (!this.canvas) return;
 
-    const link = document.createElement("a");
-    link.href = this.canvas.toDataURL("image/png");
-    link.download = `${this.pageDefinition.downloadFilePrefix}_${formatDateStamp()}.png`;
-    link.click();
-  }
+    const data_url = this.canvas.toDataURL("image/png");
 
-  downloadForiOS() {
-    if (!this.canvas) return;
-    
-    const link = document.createElement('a');
-    link.href = this.canvas.toDataURL("image/png");
-    link.download = `${this.pageDefinition.downloadFilePrefix}_${formatDateStamp()}.png`;
-    link.target = '_blank'; // iOSではこちらが有効な場合が多い
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const is_ios = /iPhone|iPad|iPod/.test(navigator.userAgent);
+
+    if (is_ios) {
+      // iPhone対応（新規タブで開く）
+      const new_window = window.open();
+      new_window.document.write(`
+        <html>
+          <body style="margin:0">
+            <img src="${data_url}" style="width:100%">
+            <p style="text-align:center;font-size:14px">
+              長押しして「写真に保存」
+            </p>
+          </body>
+        </html>
+      `);
+    } else {
+      // PC / Android
+      const link = document.createElement("a");
+      link.href = this.canvas.toDataURL("image/png");
+      link.download = `${this.pageDefinition.downloadFilePrefix}_${formatDateStamp()}.png`;
+      link.click();
+    }
   }
 }
