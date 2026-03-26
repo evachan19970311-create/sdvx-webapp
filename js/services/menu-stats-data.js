@@ -42,6 +42,7 @@ export async function loadMenuStatsData() {
   // ── ジャケットIDマップ: music_id → jacket_id ──────────────────
   const jacketMap = new Map();
   const musicNumMap = new Map();
+  const musicMap = new Map();
   for (const m of musicRows) {
     // music_data の各diff から jacket_id を取得
     for (const [k, v] of Object.entries(m)) {
@@ -49,12 +50,12 @@ export async function loadMenuStatsData() {
         // diff_key ごとに保存
         jacketMap.set(`${m.music_id}_${k}`, v.jacket_id);
         musicNumMap.set(`${m.music_id}_${k}`, m.music_num);
+        musicMap.set(`${m.music_id}_${k}`, {
+          musicTitle: m.music_title,
+          artist: m.artist,
+          ...v
+        });
       }
-    }
-    // music レベルの jacket_id があればそれも
-    if (m.jacket_id) {
-      jacketMap.set(m.music_id, m.jacket_id);
-      musicNumMap.set(m.music_id, m.music_num);
     }
   }
 
@@ -78,34 +79,33 @@ export async function loadMenuStatsData() {
     }
   }
 
-  // ── rankingMap: `${music_id}_${diff_key}` → { num, name, level, exscore1st } ──
+  // ── rankingMap: `${music_id}_${diff_key}` → { exscore1st } ──
   const rankingMap = new Map();
   for (const row of rankingRows) {
     for (const [k, v] of Object.entries(row)) {
       if (k.startsWith("diff_") && v != null) {
-        rankingMap.set(`${row.music_id}_${k}`, {
-          musicTitle: row.music_title,
-          artist: row.artist,
-          ...v
-        });
+        rankingMap.set(`${row.music_id}_${k}`, v);
       }
     }
   }
 
-  // ── 結合: ranking_data を軸にエントリを生成 ─────────────────────
+  // ── 結合: music_data を軸にエントリを生成 ─────────────────────
   const entries = [];
 
-  for (const [compositeKey, rankInfo] of rankingMap) {
+  for (const [compositeKey, musicInfo] of musicMap) {
     const [musicId, diffKey] = splitCompositeKey(compositeKey);
 
-    const scoreInfo  = scoreMap.get(compositeKey)  ?? { score: 0, clear: "no", grade: "no" };
-    const exInfo     = exscoreMap.get(compositeKey) ?? { exscore: 0 };
+    const scoreInfo   = scoreMap.get(compositeKey)  ?? { score: 0, clear: "no", grade: "no" };
+    const exInfo      = exscoreMap.get(compositeKey) ?? { exscore: 0 };
+    const rankingInfo = rankingMap.get(compositeKey) ?? { exscore1st: 0 };
 
-    const diffNum    = rankInfo.num ?? diffKeyToNum(diffKey);
-    const diffName   = (rankInfo.name ?? DEFAULT_DIFF_NAME[diffNum] ?? "?").toUpperCase();
-    const level      = rankInfo.level ?? 0;
+    const diffNum    = musicInfo.num ?? diffKeyToNum(diffKey);
+    const diffName   = (musicInfo.name ?? DEFAULT_DIFF_NAME[diffNum] ?? "?").toUpperCase();
+    const level      = musicInfo.level ?? 0;
+    if (level < 17) continue;  // レベル17未満はスキップ
+
     const levelInt   = Math.floor(level);
-    const exscore1st = rankInfo.exscore1st ?? 0;
+    const exscore1st = rankingInfo.exscore1st ?? 0;
     const exscore    = exInfo.exscore ?? 0;
     const exDiff     = exscore1st - exscore;
     const score      = scoreInfo.score ?? 0;
@@ -120,8 +120,8 @@ export async function loadMenuStatsData() {
     entries.push({
       musicNum,
       musicId,
-      musicTitle: rankInfo.musicTitle ?? "",
-      artist: rankInfo.artist ?? "",
+      musicTitle: musicInfo.musicTitle ?? "",
+      artist: musicInfo.artist ?? "",
       diffKey,
       diffNum,
       diffName,
